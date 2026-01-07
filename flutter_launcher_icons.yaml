@@ -1,0 +1,7 @@
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "/Users/anaslari/.gemini/antigravity/brain/eb1e5002-4757-457b-835b-138997e2d6b8/app_icon_1767795504162.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "/Users/anaslari/.gemini/antigravity/brain/eb1e5002-4757-457b-835b-138997e2d6b8/app_icon_1767795504162.png"

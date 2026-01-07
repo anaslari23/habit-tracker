@@ -45,7 +45,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
           return CustomScrollView(
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+                padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 20, 24, 16),
                 sliver: _buildHeader(context),
               ),
               SliverToBoxAdapter(
@@ -102,10 +102,11 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   Widget _buildWeeklyCalendar() {
     return Container(
-      height: 90,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      height: 100,
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: 14,
         itemBuilder: (context, index) {
@@ -115,16 +116,24 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
           return GestureDetector(
             onTap: () => setState(() => _selectedDate = date),
-            child: Container(
-              width: 50,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: 54,
               margin: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.03),
-                borderRadius: BorderRadius.circular(25),
+                color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.02),
+                borderRadius: BorderRadius.circular(27),
                 border: Border.all(
-                  color: isToday ? AppColors.primary.withOpacity(0.3) : Colors.transparent,
+                  color: isSelected 
+                      ? AppColors.primary.withOpacity(0.5) 
+                      : isToday 
+                          ? AppColors.primary.withOpacity(0.2) 
+                          : Colors.white.withOpacity(0.02),
                   width: 1.5,
                 ),
+                boxShadow: isSelected ? [
+                  BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 12, offset: const Offset(0, 4))
+                ] : [],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -132,27 +141,21 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   Text(
                     DateFormat('E').format(date).toUpperCase(),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.white.withOpacity(0.4),
+                      color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     DateFormat('d').format(date),
                     style: TextStyle(
                       color: isSelected ? Colors.white : Colors.white,
-                      fontSize: 16,
+                      fontSize: 17,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  if (isToday && !isSelected)
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      width: 4,
-                      height: 4,
-                      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                    ),
                 ],
               ),
             ),
@@ -192,21 +195,24 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   Widget _buildSearchBar() {
     return SliverToBoxAdapter(
       child: Container(
-        height: 54,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        height: 58,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           color: const Color(0xFF1C1F26),
-          borderRadius: BorderRadius.circular(27),
-          border: Border.all(color: Colors.white.withOpacity(0.02)),
+          borderRadius: BorderRadius.circular(29),
+          border: Border.all(color: Colors.white.withOpacity(0.04)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))
+          ],
         ),
         child: TextField(
           controller: _searchController,
           onChanged: (val) => setState(() => _searchQuery = val),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
           decoration: InputDecoration(
-            hintText: 'Search your entries...',
+            hintText: 'Search mental records...',
             hintStyle: TextStyle(color: Colors.white.withOpacity(0.2), fontWeight: FontWeight.w600),
-            prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.2), size: 22),
+            prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary.withOpacity(0.5), size: 22),
             border: InputBorder.none,
           ),
         ),
@@ -269,49 +275,80 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
           color: const Color(0xFF1C1F26),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(color: Colors.white.withOpacity(0.02)),
+          boxShadow: [
+            BoxShadow(
+              color: note.isPinned ? AppColors.primary.withOpacity(0.05) : Colors.black.withOpacity(0.1),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            )
+          ],
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(28),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddEditNoteScreen(note: note)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      if (note.isPinned)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 8),
-                          child: Icon(Icons.push_pin_rounded, size: 14, color: AppColors.primary),
-                        ),
-                      Expanded(
-                        child: Text(
-                          note.title,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17),
-                        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            children: [
+              // Subtle Glossy Overlay for pinned notes
+              if (note.isPinned)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary.withOpacity(0.03), Colors.transparent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      Text(
-                        DateFormat('MMM d').format(note.updatedAt),
-                        style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 11, fontWeight: FontWeight.w900),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    note.content,
-                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14, height: 1.4, fontWeight: FontWeight.w500),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddEditNoteScreen(note: note)),
                   ),
-                ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            if (note.isPinned)
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                margin: const EdgeInsets.only(right: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.push_pin_rounded, size: 10, color: AppColors.primary),
+                              ),
+                            Expanded(
+                              child: Text(
+                                note.title,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5),
+                              ),
+                            ),
+                            Text(
+                              DateFormat('MMM d').format(note.updatedAt),
+                              style: TextStyle(color: Colors.white.withOpacity(0.2), fontSize: 11, fontWeight: FontWeight.w900),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          note.content,
+                          style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 14, height: 1.5, fontWeight: FontWeight.w500),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -329,19 +366,33 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), shape: BoxShape.circle),
-            child: Icon(Icons.edit_note_rounded, size: 64, color: Colors.white.withOpacity(0.1)),
-          ),
-          const SizedBox(height: 24),
-          const Text('Your journal is empty', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          Text('Capture your thoughts and progress.', style: TextStyle(color: Colors.white.withOpacity(0.4), fontWeight: FontWeight.w600)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.03),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary.withOpacity(0.05)),
+              ),
+              child: Icon(Icons.auto_stories_rounded, size: 64, color: AppColors.primary.withOpacity(0.2)),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'Your Journal Awaits',
+              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Capture your journey, reflective thoughts, and daily wins in one beautiful place.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white.withOpacity(0.3), fontWeight: FontWeight.w600, fontSize: 14, height: 1.5),
+            ),
+          ],
+        ),
       ),
     );
   }

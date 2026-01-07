@@ -50,33 +50,38 @@ class HabitDetailScreen extends ConsumerWidget {
             final habitLogs = allLogs.where((l) => l.habitId == habit.id).toList();
             final stats = _calculateStats(habit, habitLogs);
 
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 20,
-                      left: 24,
-                      right: 24,
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).padding.top + 20,
+                          left: 24,
+                          right: 24,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeader(context),
+                            const SizedBox(height: 32),
+                            _buildStatsCards(context, stats),
+                            const SizedBox(height: 32),
+                            _buildContributionGrid(context, habit, habitLogs),
+                            const SizedBox(height: 32),
+                            _buildWeeklyProgress(context, habitLogs),
+                            const SizedBox(height: 32),
+                            _buildHistoryList(context, habit, habitLogs),
+                            const SizedBox(height: 100),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(context),
-                        const SizedBox(height: 32),
-                        _buildStatsCards(context, stats),
-                        const SizedBox(height: 32),
-                        _buildContributionGrid(context, habit, habitLogs),
-                        const SizedBox(height: 32),
-                        _buildWeeklyProgress(context, habitLogs),
-                        const SizedBox(height: 32),
-                        _buildHistoryList(context, habit, habitLogs),
-                        const SizedBox(height: 100),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -156,38 +161,76 @@ class HabitDetailScreen extends ConsumerWidget {
 
   Widget _buildGlassCard(BuildContext context, String title, String value, String subtitle, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF1C1F26),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: Colors.white.withOpacity(0.02)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900),
-          ),
-          Text(
-            title,
-            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(color: color.withOpacity(0.8), fontSize: 11, fontWeight: FontWeight.w900),
-          ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      color.withOpacity(0.02),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: color.withOpacity(0.1), width: 1),
+                    ),
+                    child: Icon(icon, color: color, size: 18),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    value,
+                    style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1),
+                  ),
+                  Text(
+                    title,
+                    style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      subtitle,
+                      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -205,15 +248,16 @@ class HabitDetailScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: const Color(0xFF1C1F26),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withOpacity(0.02)),
           ),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
             ),
             itemCount: 35,
             itemBuilder: (context, index) {
@@ -224,14 +268,20 @@ class HabitDetailScreen extends ConsumerWidget {
               );
               
               final isCompleted = log.status == HabitStatus.completed;
+              final isToday = AppDateUtils.isSameDay(date, DateTime.now());
               final isFuture = date.isAfter(DateTime.now());
 
-              return Container(
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
                 decoration: BoxDecoration(
                   color: isFuture 
-                      ? Colors.white.withOpacity(0.02)
-                      : isCompleted ? AppColors.primary : AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+                      ? Colors.white.withOpacity(0.01)
+                      : isCompleted ? AppColors.primary : Colors.white.withOpacity(0.04),
+                  borderRadius: BorderRadius.circular(8),
+                  border: isToday ? Border.all(color: AppColors.primary.withOpacity(0.5), width: 1.5) : null,
+                  boxShadow: isCompleted ? [
+                    BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 8, spreadRadius: -2)
+                  ] : null,
                 ),
               );
             },
@@ -247,40 +297,48 @@ class HabitDetailScreen extends ConsumerWidget {
       children: [
         const Text(
           'Weekly Activity',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.5),
         ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: const Color(0xFF1C1F26),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withOpacity(0.02)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: List.generate(7, (index) {
               final date = DateTime.now().subtract(Duration(days: 6 - index));
-              final dayName = AppDateUtils.formatDayName(date).substring(0, 1);
+              final dayName = AppDateUtils.formatDayName(date).substring(0, 3).toUpperCase();
               final hasLog = logs.any((l) => AppDateUtils.isSameDay(l.date, date) && l.status == HabitStatus.completed);
               
               return Column(
                 children: [
-                  Container(
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.elasticOut,
                     width: 32,
-                    height: hasLog ? 80 : 20,
+                    height: hasLog ? 100 : 24,
                     decoration: BoxDecoration(
-                      color: hasLog ? AppColors.primary : Colors.white.withOpacity(0.05),
+                      gradient: hasLog ? AppColors.activeGradient : null,
+                      color: hasLog ? null : Colors.white.withOpacity(0.03),
                       borderRadius: BorderRadius.circular(16),
+                      boxShadow: hasLog ? [
+                        BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))
+                      ] : null,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     dayName,
                     style: TextStyle(
-                      color: hasLog ? Colors.white : Colors.white.withOpacity(0.3),
-                      fontSize: 12,
+                      color: hasLog ? Colors.white : Colors.white.withOpacity(0.2),
+                      fontSize: 10,
                       fontWeight: FontWeight.w900,
+                      letterSpacing: 1,
                     ),
                   ),
                 ],
@@ -300,60 +358,83 @@ class HabitDetailScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Record History',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+          'Detailed History',
+          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.5),
         ),
         const SizedBox(height: 16),
         if (recentLogs.isEmpty)
-          Center(
-            child: Text(
-              'No logs yet',
-              style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 14),
+          Container(
+            padding: const EdgeInsets.all(32),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1F26),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.white.withOpacity(0.02)),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.history_rounded, color: Colors.white.withOpacity(0.1), size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  'No activity recorded yet',
+                  style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           )
         else
           ListView.builder(
             shrinkWrap: true,
+            padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: recentLogs.length.clamp(0, 5),
             itemBuilder: (context, index) {
               final log = recentLogs[index];
+              final isSuccess = log.status == HabitStatus.completed;
+              final accentColor = isSuccess ? AppColors.primary : Colors.redAccent;
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1C1F26),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: Colors.white.withOpacity(0.02)),
+                  boxShadow: [
+                    BoxShadow(color: accentColor.withOpacity(0.02), blurRadius: 10)
+                  ],
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: log.status == HabitStatus.completed ? AppColors.primary.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                        color: accentColor.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        log.status == HabitStatus.completed ? Icons.check_rounded : Icons.close_rounded,
-                        color: log.status == HabitStatus.completed ? AppColors.primary : Colors.red,
+                        isSuccess ? Icons.check_rounded : Icons.block_rounded,
+                        color: accentColor,
                         size: 16,
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppDateUtils.formatDate(log.date),
-                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
-                        ),
-                        Text(
-                          log.status == HabitStatus.completed ? 'Achieved' : 'Skipped',
-                          style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppDateUtils.formatDate(log.date),
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900),
+                          ),
+                          Text(
+                            log.status == HabitStatus.completed ? 'Goal Achieved' : 'Task Skipped',
+                            style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
                     ),
+                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.1), size: 18),
                   ],
                 ),
               );

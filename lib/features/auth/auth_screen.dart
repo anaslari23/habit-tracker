@@ -13,14 +13,11 @@ class AuthScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isSignUp = false;
-
+  final _nameController = TextEditingController();
+  bool _isLoading = false;
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -40,7 +37,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 48),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -70,98 +67,61 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   'Master your daily routine',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 80),
                 
-                // Form Section
-                _buildTextField(
-                  controller: _emailController,
-                  hint: 'Email Address',
-                  icon: Icons.alternate_email_rounded,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _passwordController,
-                  hint: 'Password',
-                  icon: Icons.lock_outline_rounded,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 32),
-                
-                // Primary Action Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 64,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                      if (_isSignUp) {
-                        ref.read(authControllerProvider.notifier).signUpWithEmail(
-                              _emailController.text.trim(),
-                              _passwordController.text.trim(),
-                            );
-                      } else {
-                        ref.read(authControllerProvider.notifier).signInWithEmail(
-                              _emailController.text.trim(),
-                              _passwordController.text.trim(),
-                            );
-                      }
-                    },
-                    child: Text(
-                      _isSignUp ? 'JOIN NOW' : 'SIGN IN',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                        fontSize: 16,
+                // Form Section & Content Constrained for Web
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  child: Column(
+                    children: [
+                      _buildTextField(
+                        controller: _nameController,
+                        hint: 'Your Name',
+                        icon: Icons.person_rounded,
+                        textCapitalization: TextCapitalization.words,
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Toggle Button
-                TextButton(
-                  onPressed: () => setState(() => _isSignUp = !_isSignUp),
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(color: Colors.white.withOpacity(0.5), fontWeight: FontWeight.w600),
-                      children: [
-                        TextSpan(text: _isSignUp ? 'Already a member? ' : 'New here? '),
-                        TextSpan(
-                          text: _isSignUp ? 'Login' : 'Create Account',
-                          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                             if (_nameController.text.isNotEmpty) {
+                                ref.read(userNameProvider.notifier).saveName(_nameController.text.trim());
+                                ref.read(authControllerProvider.notifier).signInAnonymously();
+                              } else {
+                                // Optional: Show snackbar "Please enter your name"
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please enter your name to start')),
+                                );
+                              }
+                          },
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                )
+                              : const Text(
+                                  'Get Started',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 60),
-                
-                // Guest Option
-                Opacity(
-                  opacity: 0.6,
-                  child: TextButton.icon(
-                    onPressed: () => ref.read(authControllerProvider.notifier).signInAnonymously(),
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
-                    label: const Text(
-                      'START WITHOUT ACCOUNT',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        fontSize: 12,
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],
@@ -178,6 +138,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     required IconData icon,
     bool obscureText = false,
     TextInputType? keyboardType,
+    TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -190,10 +151,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        textCapitalization: textCapitalization,
         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.15), fontWeight: FontWeight.w600),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontWeight: FontWeight.w600, fontSize: 14),
           prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 22),
